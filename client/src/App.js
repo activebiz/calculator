@@ -8,6 +8,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import FormLabel from "@material-ui/core/FormLabel";
+import Typography from "@material-ui/core/Typography";
 import "./App.css";
 import { postData, combinedWith, either } from './service';
 import { format } from 'date-fns'
@@ -28,20 +29,20 @@ function App() {
     inputA: undefined,
     inputB: undefined,
     result: undefined,
+    error: false,
+    helperText: 'Please select a formula',
   };
 
   const [state, setState] = useState(initialState);
-  const { selectedFormula, inputA, inputB, result } = state;
-  const [error, setError] = useState(false);
-  const [helperText, setHelperText] = useState('Please select a formula');
+  const { selectedFormula, inputA, inputB, result, error, helperText } = state;
 
   const handleRadioChange = (event) => {
     setState((prevState) => ({
       ...prevState,
       selectedFormula: event.target.value,
+      error: false,
+      helperText: ' ',
     }));    
-    setHelperText(" ");
-    setError(false);
   };
 
   const getResult = () => {
@@ -62,20 +63,26 @@ function App() {
         const calcResult = getResult();
         const today = format(new Date(), "dd/MM/yyyy'T'HH:mm:ss.SSSxxx")
         await postData({ timestamp: today, inputA, inputB, selectedFormula, result: calcResult })
-        setError(false);
-        setHelperText('Data generated!');
         setState((prevState) => ({
           ...prevState,
           result: calcResult,
+          error: false,
+          helperText: 'Data generated!',
         }));
       } catch (e) {
-        setHelperText(e.message);
-        setError(true);
+        setState((prevState) => ({
+          ...prevState,
+          error: true,
+          helperText: e.message,
+        }));
       }
 
     } else {
-      setHelperText("Please select a formula.");
-      setError(true);
+      setState((prevState) => ({
+        ...prevState,
+        error: true,
+        helperText: 'Please select a formula.'
+      }));
     }
   };
 
@@ -85,15 +92,18 @@ function App() {
       noValidate
       autoComplete="off"
       onSubmit={handleSubmit}
-    >
+    > 
       <div className="App">
+      <Typography variant="h2" component="h2">
+        Calculator
+      </Typography>        
         <div>
           <FormControl
             component="fieldset"
             error={error}
             className={classes.formControl}
           >
-            <FormLabel component="legend">Select formula</FormLabel>
+            <FormLabel component="legend">Select a formula</FormLabel>
             <RadioGroup
               aria-label="Combined With"
               name="combinedWith"
